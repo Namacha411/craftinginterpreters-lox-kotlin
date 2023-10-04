@@ -25,7 +25,6 @@ class Scanner(
     )
 
     fun scanTokens(): List<Token> {
-        val l = mutableListOf<Token>()
         while (!isAtEnd()) {
             start = current
             scanToken()
