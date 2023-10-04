@@ -1,7 +1,7 @@
 class Token(
-    val type: TokenType,
+    private val type: TokenType,
     val lexeme: String,
-    val literal: Any?,
+    private val literal: Any?,
     val line: Int?
 ) {
     override fun toString(): String {

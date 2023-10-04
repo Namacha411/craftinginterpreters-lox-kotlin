@@ -1,5 +1,4 @@
 import java.io.PrintWriter
-import java.lang.reflect.Type
 
 fun defineVisitor(pw: PrintWriter, baseName: String, types: List<String>) {
     pw.println("\tinterface Visitor<R> {")
