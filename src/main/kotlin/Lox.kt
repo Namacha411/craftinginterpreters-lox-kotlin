@@ -22,33 +22,45 @@ class Lox {
             while (true) {
                 print("> ")
                 val line = readlnOrNull() ?: break
-                runLox(line)
+                run(line)
                 hadError = false
             }
         }
 
         private fun runFile(path: String) {
             val bytes = Files.readAllBytes(Paths.get(path))
-            runLox(String(bytes, Charset.defaultCharset()))
+            run(String(bytes, Charset.defaultCharset()))
             if (hadError) {
                 exitProcess(65)
             }
         }
 
-        private fun runLox(source: String) {
+        private fun run(source: String) {
             val scanner = Scanner(source)
             val tokens = scanner.scanTokens()
+            val parser = Parser(tokens)
+            val expression = parser.parse()
 
-            for (token in tokens) {
-                println(token)
+            if (hadError) {
+                return
             }
+
+            println(expression?.let { AstPrinter().print(it) })
         }
 
         fun error(line: Int, message: String) {
             report(line, "", message)
         }
 
-        fun report(line: Int, where: String, message: String) {
+        fun error(token: Token, message: String) {
+            if (token.type == TokenType.EOF) {
+                token.line?.let { report(it, "at end",message) }
+            } else {
+                token.line?.let { report(it, "at '${token.lexeme}'", message) }
+            }
+        }
+
+        private fun report(line: Int, where: String, message: String) {
             System.err.println("[line $line] Error $where: $message")
             hadError = true
         }
