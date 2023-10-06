@@ -23,7 +23,7 @@ class Parser(
 
     private fun equality(): Expr {
         var expr = comparison()
-        while (match(TokenType.BANG_EQUAL, TokenType.BANG_EQUAL)) {
+        while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
             val operator = previous()
             val right = comparison()
             expr = Expr.Binary(expr, operator, right)
