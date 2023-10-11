@@ -1,14 +1,4 @@
-class AstPrinter() : Expr.Visitor<String> {
-    fun main(args: Array<String>) {
-        val expr = Expr.Binary(
-            Expr.Unary(Token(TokenType.MINUS, "-", null, 1), Expr.Literal(123)),
-            Token(TokenType.STAR, "*", null, 1),
-            Expr.Grouping(Expr.Literal(45.67))
-        )
-
-        println(AstPrinter().print(expr))
-    }
-
+class AstPrinter : Expr.Visitor<String> {
     fun print(expr: Expr): String {
         return expr.accept(this)
     }

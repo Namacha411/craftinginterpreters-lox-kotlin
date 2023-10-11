@@ -5,7 +5,9 @@ import kotlin.system.exitProcess
 
 class Lox {
     companion object {
+        private val interpreter = Interpreter()
         private var hadError = false
+        private var hadRuntimeError = false
 
         fun main(args: Array<String>) {
             if (args.size > 1) {
@@ -33,6 +35,9 @@ class Lox {
             if (hadError) {
                 exitProcess(65)
             }
+            if (hadRuntimeError) {
+                exitProcess(70)
+            }
         }
 
         private fun run(source: String) {
@@ -45,7 +50,7 @@ class Lox {
                 return
             }
 
-            println(expression?.let { AstPrinter().print(it) })
+            interpreter.interpret(expression)
         }
 
         fun error(line: Int, message: String) {
@@ -58,6 +63,11 @@ class Lox {
             } else {
                 token.line?.let { report(it, "at '${token.lexeme}'", message) }
             }
+        }
+
+        fun runtimeError(error: RuntimeError) {
+            println("${error.message}\n[line ${error.token.line}]")
+            hadRuntimeError = true
         }
 
         private fun report(line: Int, where: String, message: String) {

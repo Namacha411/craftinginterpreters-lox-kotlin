@@ -9,12 +9,8 @@ class Parser(
 
     private var current = 0
 
-    fun parse(): Expr? {
-        return try {
-            expression()
-        } catch (e: ParseError) {
-            null
-        }
+    fun parse(): Expr {
+        return expression()
     }
 
     private fun expression(): Expr {
