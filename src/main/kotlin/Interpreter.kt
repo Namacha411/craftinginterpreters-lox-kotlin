@@ -1,12 +1,20 @@
-class Interpreter: Expr.Visitor<Any?> {
+class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    private var environment = Environment()
 
-    fun interpret(expression: Expr?) {
+    fun interpret(statements: List<Stmt>) {
         try {
-            val value = expression?.let { evaluate(it) }
-            println(stringify(value))
+            for (statement in statements) {
+                execute(statement)
+            }
         } catch (error: RuntimeError) {
             Lox.runtimeError(error)
         }
+    }
+
+    override fun visitAssignExpr(expr: Expr.Assign): Any? {
+        val value = evaluate(expr.value)
+        environment.assign(expr.name, value)
+        return value
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): Any? {
@@ -23,34 +31,42 @@ class Interpreter: Expr.Visitor<Any?> {
                     checkNumberOperands(expr.operator, left, right)
                 }
             }
+
             TokenType.MINUS -> {
                 checkNumberOperands(expr.operator, left, right)
                 left as Double - right as Double
             }
+
             TokenType.SLASH -> {
                 checkNumberOperands(expr.operator, left, right)
                 left as Double / right as Double
             }
+
             TokenType.STAR -> {
                 checkNumberOperands(expr.operator, left, right)
                 left as Double * right as Double
             }
+
             TokenType.GRATER -> {
                 checkNumberOperands(expr.operator, left, right)
                 (left as Double) > (right as Double)
             }
+
             TokenType.GRATER_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right)
                 (left as Double) >= (right as Double)
             }
+
             TokenType.LESS -> {
                 checkNumberOperands(expr.operator, left, right)
                 (left as Double) < (right as Double)
             }
+
             TokenType.LESS_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right)
                 (left as Double) <= (right as Double)
             }
+
             TokenType.BANG_EQUAL -> !isEqual(left, right)
             TokenType.EQUAL_EQUAL -> isEqual(left, right)
             else -> null
@@ -72,9 +88,14 @@ class Interpreter: Expr.Visitor<Any?> {
                 checkNumberOperand(expr.operator, right)
                 -(right as? Double)!!
             }
+
             TokenType.BANG -> !isTruthy(right)
             else -> null
         }
+    }
+
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        return environment.get(expr.name)
     }
 
     private fun checkNumberOperand(operator: Token, operand: Any?) {
@@ -127,5 +148,43 @@ class Interpreter: Expr.Visitor<Any?> {
 
     private fun evaluate(expr: Expr): Any? {
         return expr.accept(this)
+    }
+
+    private fun execute(stmt: Stmt) {
+        stmt.accept(this)
+    }
+
+    private fun executeBlock(statements: List<Stmt>, environment: Environment) {
+        val previous = this.environment
+        try {
+            this.environment = environment
+            for (statement in statements) {
+                execute(statement)
+            }
+        } finally {
+            this.environment = previous
+        }
+    }
+
+    override fun visitBlockStmt(stmt: Stmt.Block) {
+        executeBlock(stmt.statement, Environment(environment))
+    }
+
+    override fun visitExpressionStmt(stmt: Stmt.Expression) {
+        evaluate(stmt.expression)
+    }
+
+    override fun visitPrintStmt(stmt: Stmt.Print) {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
+    }
+
+    override fun visitVarStmt(stmt: Stmt.Var) {
+        val value = if (stmt.initializer != null) {
+            evaluate(stmt.initializer)
+        } else {
+            null
+        }
+        environment.define(stmt.name.lexeme, value)
     }
 }

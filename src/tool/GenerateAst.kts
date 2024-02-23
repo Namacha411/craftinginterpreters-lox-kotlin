@@ -43,9 +43,22 @@ defineAst(
     "../main/kotlin/",
     "Expr",
     arrayListOf(
+        "Assign: Token name, Expr value",
         "Binary: Expr left, Token operator, Expr right",
         "Grouping: Expr expression",
-        "Literal: Any value",
-        "Unary: Token operator, Expr right"
+        "Literal: Any? value",
+        "Unary: Token operator, Expr right",
+        "Variable: Token name"
+    )
+)
+
+defineAst(
+    "../main/kotlin/",
+    "Stmt",
+    arrayListOf(
+        "Block: List<Stmt> statement",
+        "Expression: Expr expression",
+        "Print: Expr expression",
+        "Var: Token name, Expr? initializer"
     )
 )

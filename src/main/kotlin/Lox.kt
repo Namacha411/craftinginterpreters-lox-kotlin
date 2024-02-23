@@ -44,13 +44,13 @@ class Lox {
             val scanner = Scanner(source)
             val tokens = scanner.scanTokens()
             val parser = Parser(tokens)
-            val expression = parser.parse()
+            val statements = parser.parse()
 
             if (hadError) {
                 return
             }
 
-            interpreter.interpret(expression)
+            interpreter.interpret(statements)
         }
 
         fun error(line: Int, message: String) {
@@ -59,7 +59,7 @@ class Lox {
 
         fun error(token: Token, message: String) {
             if (token.type == TokenType.EOF) {
-                token.line?.let { report(it, "at end",message) }
+                token.line?.let { report(it, "at end", message) }
             } else {
                 token.line?.let { report(it, "at '${token.lexeme}'", message) }
             }
