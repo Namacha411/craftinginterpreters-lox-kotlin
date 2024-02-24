@@ -11,6 +11,10 @@ class AstPrinter : Expr.Visitor<String> {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right)
     }
 
+    override fun visitCallExpr(expr: Expr.Call): String {
+        return """TODO("Not yet implemented")"""
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): String {
         return parenthesize("group", expr.expression)
     }
