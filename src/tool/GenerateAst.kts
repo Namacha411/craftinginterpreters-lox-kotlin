@@ -47,6 +47,7 @@ defineAst(
         "Binary: Expr left, Token operator, Expr right",
         "Grouping: Expr expression",
         "Literal: Any? value",
+        "Logical: Expr left, Token operator, Expr right",
         "Unary: Token operator, Expr right",
         "Variable: Token name"
     )
@@ -58,7 +59,9 @@ defineAst(
     arrayListOf(
         "Block: List<Stmt> statement",
         "Expression: Expr expression",
+        "If: Expr condition, Stmt thenBranch, Stmt? elseBranch",
         "Print: Expr expression",
+        "While: Expr condition, Stmt body",
         "Var: Token name, Expr? initializer"
     )
 )

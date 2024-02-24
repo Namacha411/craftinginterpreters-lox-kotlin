@@ -22,7 +22,8 @@ class Parser(
     }
 
     private fun assignment(): Expr {
-        val expr = equality()
+        // val expr = equality()
+        val expr = or()
         if (match(TokenType.EQUAL)) {
             val equals = previous()
             val value = assignment()
@@ -31,6 +32,26 @@ class Parser(
                 return Expr.Assign(name, value)
             }
             error(equals, "invalid assignment target.")
+        }
+        return expr
+    }
+
+    private fun or(): Expr {
+        var expr = and()
+        while (match(TokenType.OR)) {
+            val operator = previous()
+            val right = and()
+            expr = Expr.Logical(expr, operator, right)
+        }
+        return expr
+    }
+
+    private fun and(): Expr {
+        var expr = equality()
+        while (match(TokenType.AND)) {
+            val operator = previous()
+            val right = equality()
+            expr = Expr.Logical(expr, operator, right)
         }
         return expr
     }
@@ -48,13 +69,71 @@ class Parser(
     }
 
     private fun statement(): Stmt {
+        if (match(TokenType.FOR)) {
+            return forStatement()
+        }
+        if (match(TokenType.IF)) {
+            return ifStatement()
+        }
         if (match(TokenType.PRINT)) {
             return printStatement()
+        }
+        if (match(TokenType.WHILE)) {
+            return whileStatement()
         }
         if (match(TokenType.LEFT_BRACE)) {
             return Stmt.Block(block())
         }
         return expressionStatement()
+    }
+
+    private fun forStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after for.")
+        val initializer = if (match(TokenType.SEMICOLON)) {
+            null
+        } else if (match(TokenType.VAR)) {
+            varDeclaration()
+        } else {
+            expressionStatement()
+        }
+        // initializerはStmtなので;まで含めてパースされるので直後のconsumeは必要ない、他はExpr
+        val condition = if (!check(TokenType.SEMICOLON)) {
+            expression()
+        } else {
+            Expr.Literal(true)
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after for condition.")
+        val increment = if (!check(TokenType.RIGHT_PAREN)) {
+            expression()
+        } else {
+            null
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
+        var body = statement()
+
+        // forをwhileにデシュガリング
+        if (increment != null) {
+            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+        }
+        body = Stmt.While(condition, body)
+        if (initializer != null) {
+            body = Stmt.Block(listOf(initializer, body))
+        }
+
+        return body
+    }
+
+    private fun ifStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after if.")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+        val thenBranch = statement()
+        val elseBranch = if (match(TokenType.ELSE)) {
+            statement()
+        } else {
+            null
+        }
+        return Stmt.If(condition, thenBranch, elseBranch)
     }
 
     private fun printStatement(): Stmt {
@@ -72,6 +151,14 @@ class Parser(
         }
         consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
         return Stmt.Var(name, initializer)
+    }
+
+    private fun whileStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
+        val body = statement()
+        return Stmt.While(condition, body)
     }
 
     private fun expressionStatement(): Stmt {
