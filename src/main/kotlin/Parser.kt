@@ -22,7 +22,6 @@ class Parser(
     }
 
     private fun assignment(): Expr {
-        // val expr = equality()
         val expr = or()
         if (match(TokenType.EQUAL)) {
             val equals = previous()
@@ -30,6 +29,8 @@ class Parser(
             if (expr is Expr.Variable) {
                 val name = expr.name
                 return Expr.Assign(name, value)
+            } else if (expr is Expr.Get) {
+                return Expr.Set(expr.obj, expr.name, value)
             }
             error(equals, "invalid assignment target.")
         }
@@ -58,6 +59,9 @@ class Parser(
 
     private fun declaration(): Stmt {
         try {
+            if (match(TokenType.CLASS)) {
+                return classDeclaration()
+            }
             if (match(TokenType.FUN)) {
                 return function("function")
             }
@@ -69,6 +73,19 @@ class Parser(
             synchronize()
             throw ParseError()
         }
+    }
+
+    private fun classDeclaration(): Stmt {
+        val name = consume(TokenType.IDENTIFIER, "Expect class name.")
+        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
+        val methods = ArrayList<Stmt.Function>()
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"))
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
+        return Stmt.Class(name, methods)
     }
 
     private fun statement(): Stmt {
@@ -263,8 +280,11 @@ class Parser(
     private fun call(): Expr {
         var expr = primary()
         while (true) {
-            if (match(TokenType.LEFT_PAREN)) {
-                expr = finishCall(expr)
+            expr = if (match(TokenType.LEFT_PAREN)) {
+                finishCall(expr)
+            } else if (match(TokenType.DOT)) {
+                val name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.")
+                Expr.Get(expr, name)
             } else {
                 break
             }
@@ -298,6 +318,9 @@ class Parser(
         }
         if (match(TokenType.NUMBER, TokenType.STRING)) {
             return Expr.Literal(previous().literal)
+        }
+        if (match(TokenType.THIS)) {
+            return Expr.This(previous())
         }
         if (match(TokenType.IDENTIFIER)) {
             return Expr.Variable(previous())
