@@ -11,7 +11,7 @@ abstract class Stmt {
     }
 
     class Block(
-        val statement: List<Stmt>,
+        val statements: List<Stmt>,
     ) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitBlockStmt(this)
