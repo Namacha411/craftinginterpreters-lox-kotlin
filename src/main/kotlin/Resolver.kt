@@ -14,7 +14,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
 
     private enum class ClassType {
         NONE,
-        CLASSS
+        CLASS
     }
 
     fun resolve(statements: List<Stmt>) {
@@ -144,7 +144,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
 
     override fun visitClassStmt(stmt: Stmt.Class) {
         val enclosingClass = currentClass
-        currentClass = ClassType.CLASSS
+        currentClass = ClassType.CLASS
 
         declare(stmt.name)
         define(stmt.name)

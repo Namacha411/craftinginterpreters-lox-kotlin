@@ -1,4 +1,4 @@
-class Interpreter() : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     private val globals = Environment()
     private val locals = HashMap<Expr, Int>()
     private var environment = globals
