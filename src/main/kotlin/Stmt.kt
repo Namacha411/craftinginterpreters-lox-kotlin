@@ -21,6 +21,7 @@ abstract class Stmt {
 
     class Class(
         val name: Token,
+        val superclass: Expr.Variable?,
         val methods: List<Function>,
     ) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {

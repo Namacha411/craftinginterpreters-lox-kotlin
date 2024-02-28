@@ -1,4 +1,4 @@
-class Environment(private val enclosing: Environment? = null) {
+class Environment(val enclosing: Environment? = null) {
     private val values = HashMap<String, Any?>()
 
     fun get(name: Token): Any? {
